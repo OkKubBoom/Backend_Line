@@ -6,7 +6,7 @@ require('dotenv').config();
 const LINE_ACCESS_TOKEN = process.env.YOUR_LINE_CHANNEL_ACCESS_TOKEN;
 const RICH_MENU_PASS_REGISTERED = "richmenu-d980ac56d4ce3ff9b0996cfbdd9370fb"; // 1
 const RICH_MENU_DEFAULT = "richmenu-6ebd2030af3d790facdda37d89a88d2a"; // 2
-
+const axios = require("axios");
 router.get('/', async (req, res, next) => {
     try {
         const users = await User.find(); 
@@ -89,44 +89,49 @@ router.post('/webhook', async (req, res, next) => {
         for (const event of events) {
             if (event.type === "follow") {
               const user_line = event.source.userId;
-              console.log(`User ${userId} followed the bot!`);
+              console.log(`User ${user_line} followed the bot!`);
               const user = await User.findOne({ user_line });
-              console.log('================Start======================');
-              console.log('LINE_ACCESS_TOKEN :',LINE_ACCESS_TOKEN);
-              console.log('=================Ent=======================');
               if(user) {
                 console.log('================Start======================');
                 console.log('RICH_MENU_PASS_REGISTERED');
                 console.log('=================Ent=======================');
-                    await linkRichMenu(userId, RICH_MENU_PASS_REGISTERED);
+                    await linkRichMenu(user_line, RICH_MENU_PASS_REGISTERED);
                 }else{
                 console.log('================Start======================');
                 console.log('RICH_MENU_DEFAULT');
                 console.log('=================Ent=======================');
-                    await linkRichMenu(userId, RICH_MENU_DEFAULT);
+                    await linkRichMenu(user_line, RICH_MENU_DEFAULT);
                 }  
         
-              console.log("User ID saved successfully!");
-              return res.status(200).json(new ResponseModel(200, true, 'User Line created successfully', newUser));                                             
+              console.log("✅ User Line Webhook successfully");
+              return res.status(200).json(new ResponseModel(200, true, 'User Line Webhook successfully'));                                             
             }
           }
     } catch (err) {
-        console.error('Error webhook:', err);
+        console.error('❌ Error webhook:', err);
         res.status(500).json(new ResponseModel(500, false, 'Server webhook error', null, err));
     }
 });
 async function linkRichMenu(userId, richMenuId) {
+    console.log('====================Start========================');
+    console.log('LINE_ACCESS_TOKEN :',LINE_ACCESS_TOKEN);
+    console.log('====================Ent========================');
+    try {
+        const url = `https://api.line.me/v2/bot/user/${userId}/richmenu/${richMenuId}`
+        
+    console.log('====================Start========================');
+    console.log('URL :',url);
+    console.log('====================Ent========================');
+
     console.log('============================================');
     console.log('LINE_ACCESS_TOKEN :',LINE_ACCESS_TOKEN);
     console.log('============================================');
-
-    try {
       await axios.post(
         `https://api.line.me/v2/bot/user/${userId}/richmenu/${richMenuId}`,
         {},
         {
           headers: {
-            Authorization: `Bearer ${LINE_ACCESS_TOKEN}`,
+            Authorization: `Bearer TF8YhYwNEKULKMQN2+ilFe6ynBosjlGx0jFmUh6elNMqiamf6uP2rO5fOvrXXRSGT/adXnACLBZzdm///7DjJpJemIFzJmL7z4u7KhhnuOeWGilGNaMWLvRV0LDC7F5+V9w/y6y/oUsG6i07PbcDcQdB04t89/1O/w1cDnyilFU=`,
           },
         }
       );
