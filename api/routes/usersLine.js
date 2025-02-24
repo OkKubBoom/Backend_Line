@@ -81,38 +81,82 @@ router.delete('/:id', async (req, res, next) => {
     }
 });
 
-
 router.post('/webhook', async (req, res, next) => {
     console.log("Received Webhook:", JSON.stringify(req.body, null, 2));
+
     try {
         const events = req.body.events;
-        for (const event of events) {
-            if (event.type === "follow") {
-              const user_line = event.source.userId;
-              console.log(`User ${user_line} followed the bot!`);
-              const user = await User.findOne({ user_line });
-              if(user) {
-                console.log('================Start======================');
-                console.log('RICH_MENU_PASS_REGISTERED');
-                console.log('=================Ent=======================');
-                    await linkRichMenu(user_line, RICH_MENU_PASS_REGISTERED);
-                }else{
-                console.log('================Start======================');
-                console.log('RICH_MENU_DEFAULT');
-                console.log('=================Ent=======================');
-                    await linkRichMenu(user_line, RICH_MENU_DEFAULT);
-                }  
-        
-              console.log("✅ User Line Webhook successfully");
-              return res.status(200).json(new ResponseModel(200, true, 'User Line Webhook successfully'));                                             
+
+        // ✅ ตอบกลับ LINE ทันที เพื่อป้องกัน Timeout
+        res.status(200).json(new ResponseModel(200, true, 'User Line Webhook received'));
+
+        // 🚀 ใช้ setImmediate() เพื่อประมวลผลใน Background
+        setImmediate(async () => {
+            for (const event of events) {
+                if (event.type === "follow") {
+                    const user_line = event.source.userId;
+                    console.log(`User ${user_line} followed the bot!`);
+
+                    try {
+                        const user = await User.findOne({ user_line });
+
+                        if (user) {
+                            console.log('================Start======================');
+                            console.log('RICH_MENU_PASS_REGISTERED');
+                            console.log('=================End=======================');
+                            await linkRichMenu(user_line, RICH_MENU_PASS_REGISTERED);
+                        } else {
+                            console.log('================Start======================');
+                            console.log('RICH_MENU_DEFAULT');
+                            console.log('=================End=======================');
+                            await linkRichMenu(user_line, RICH_MENU_DEFAULT);
+                        }
+
+                        console.log("✅ User Line Webhook processed successfully");
+
+                    } catch (error) {
+                        console.error('❌ Error processing webhook:', error);
+                    }
+                }
             }
-          }
+        });
+
     } catch (err) {
         console.error('❌ Error webhook:', err);
-        res.status(500).json(new ResponseModel(500, false, 'Server webhook error', null, err));
-        
     }
 });
+
+// router.post('/webhook', async (req, res, next) => {
+//     console.log("Received Webhook:", JSON.stringify(req.body, null, 2));
+//     try {
+//         const events = req.body.events;
+//         for (const event of events) {
+//             if (event.type === "follow") {
+//               const user_line = event.source.userId;
+//               console.log(`User ${user_line} followed the bot!`);
+//               const user = await User.findOne({ user_line });
+//               if(user) {
+//                 console.log('================Start======================');
+//                 console.log('RICH_MENU_PASS_REGISTERED');
+//                 console.log('=================Ent=======================');
+//                     await linkRichMenu(user_line, RICH_MENU_PASS_REGISTERED);
+//                 }else{
+//                 console.log('================Start======================');
+//                 console.log('RICH_MENU_DEFAULT');
+//                 console.log('=================Ent=======================');
+//                     await linkRichMenu(user_line, RICH_MENU_DEFAULT);
+//                 }  
+        
+//               console.log("✅ User Line Webhook successfully");
+//               return res.status(200).json(new ResponseModel(200, true, 'User Line Webhook successfully'));                                             
+//             }
+//           }
+//     } catch (err) {
+//         console.error('❌ Error webhook:', err);
+//         res.status(500).json(new ResponseModel(500, false, 'Server webhook error', null, err));
+
+//     }
+// });
 async function linkRichMenu(userId, richMenuId) {
     console.log('====================Start========================');
     console.log('LINE_ACCESS_TOKEN :',LINE_ACCESS_TOKEN);
