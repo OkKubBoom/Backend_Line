@@ -5,10 +5,5 @@
       "source": "/(.*)",
       "destination": "/api"
     }
-  ],
-  "functions": {
-    "api/userLines/webhook": {
-      "maxDuration": 60
-    }
-  }
+  ]
 }
