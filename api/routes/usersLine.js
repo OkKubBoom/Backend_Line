@@ -110,6 +110,7 @@ router.post('/webhook', async (req, res, next) => {
     } catch (err) {
         console.error('❌ Error webhook:', err);
         res.status(500).json(new ResponseModel(500, false, 'Server webhook error', null, err));
+        
     }
 });
 async function linkRichMenu(userId, richMenuId) {
